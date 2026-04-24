@@ -1,0 +1,12 @@
+.azure
+
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+
+# IDE
+.vs/
+.vscode/
+*.swp
