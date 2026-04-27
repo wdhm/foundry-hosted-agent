@@ -1,17 +1,15 @@
-# Build stage
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+WORKDIR /app
+EXPOSE 8088
+ENV ASPNETCORE_URLS=http://+:8088
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY . .
 RUN dotnet restore
-RUN dotnet build -c Release --no-restore
-RUN dotnet publish -c Release --no-build -o /app
+RUN dotnet publish -c Release -o /app/publish
 
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
-RUN apk add --no-cache tzdata
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app .
-EXPOSE 8088
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8088/ || exit 1
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "HostedAgent.dll"]
